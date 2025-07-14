@@ -70,6 +70,8 @@ If your code works, you will see the test completed successfully.
   - The autograder will run your script against a test script to verify the functionality.
   - Check the status of the autograder on Github Actions to see if it passed successfully or failed.
   - You can submit multiple times before the deadline. The latest submission before the deadline will be considered your final submission.
+  
+Submit your final solution link to this form: [Google form](https://forms.gle/a3ibaSHcqpaZWsnPA).
 
 ### Common Issues
 - Your submission should not stop the Bitcoin Core daemon at any point.
