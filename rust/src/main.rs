@@ -1,11 +1,11 @@
 #![allow(unused)]
 use bitcoin::hex::DisplayHex;
-use std::collections::HashSet;
-use bitcoincore_rpc::bitcoin::{Amount, Address, Network};
+use bitcoincore_rpc::bitcoin::{Address, Amount, Network};
 use bitcoincore_rpc::{Auth, Client, RpcApi};
 use serde::de::value;
 use serde::Deserialize;
 use serde_json::json;
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, Write};
 
@@ -36,8 +36,8 @@ fn send(rpc: &Client, addr: &str) -> bitcoincore_rpc::Result<String> {
     Ok(send_result.txid)
 }
 
-
-fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Error>> {
+fn main() -> bitcoincore_rpc::Result<()> {
+    //Result<(), Box<dyn std::error::Error>> {
     // 1. Connect to the node
     let rpc = Client::new(
         RPC_URL,
@@ -51,11 +51,11 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
             match rpc.load_wallet(name) {
                 Ok(_) => println!("Wallet loaded successfully"),
                 Err(e) => {
-                    let rpc_err = e.to_string(); 
+                    let rpc_err = e.to_string();
                     if rpc_err.contains("Wallet file not found") {
                         rpc.create_wallet(name, None, None, None, None)?;
                         println!("Wallet created avec successfully")
-                    }else {
+                    } else {
                         return Err(e);
                     }
                 }
@@ -63,15 +63,23 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
         }
     }
 
-
-    let miner_rpc = Client::new("http://127.0.0.1:18443/wallet/Miner", Auth::UserPass(RPC_USER.to_owned(), RPC_PASS.to_owned()))?;
-    let trader_rpc = Client::new("http://127.0.0.1:18443/wallet/Trader", Auth::UserPass(RPC_USER.to_owned(), RPC_PASS.to_owned()))?;
+    let miner_rpc = Client::new(
+        "http://127.0.0.1:18443/wallet/Miner",
+        Auth::UserPass(RPC_USER.to_owned(), RPC_PASS.to_owned()),
+    )?;
+    let trader_rpc = Client::new(
+        "http://127.0.0.1:18443/wallet/Trader",
+        Auth::UserPass(RPC_USER.to_owned(), RPC_PASS.to_owned()),
+    )?;
 
     let miner_balance = miner_rpc.get_balance(None, None)?;
     println!("Miner balance: {} BTC", miner_balance.to_btc());
 
     // 3. Miner generates an address with label "Mining Reward"
-    let mining_address = miner_rpc.get_new_address(Some("Mining Reward"), None)?.require_network(Network::Regtest).unwrap();
+    let mining_address = miner_rpc
+        .get_new_address(Some("Mining Reward"), None)?
+        .require_network(Network::Regtest)
+        .unwrap();
     rpc.generate_to_address(103, &mining_address)?; // Créé un UTXO de 50 BTC
 
     // 4. Mine until balance > 0
@@ -93,7 +101,10 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
     println!("Miner balance: {} BTC", miner_balance.to_btc());
 
     // 6. Trader address
-    let trader_address = trader_rpc.get_new_address(Some("Received"), None)?.require_network(Network::Regtest).unwrap();
+    let trader_address = trader_rpc
+        .get_new_address(Some("Received"), None)?
+        .require_network(Network::Regtest)
+        .unwrap();
 
     // 7. Send 20 BTC from Miner to Trader
     // Wait for 100 blocks to mature
@@ -102,7 +113,11 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
         &trader_address,
         Amount::from_btc(20.0)?,
         Some("Payment"),
-        Some("To Trader"), None, None, None, None,
+        Some("To Trader"),
+        None,
+        None,
+        None,
+        None,
     )?;
     println!("TXID: {}", txid);
 
@@ -125,11 +140,11 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
         let input_tx = rpc.get_raw_transaction_info(&vin_txid, None)?;
         let input_vout = &input_tx.vout[vout_index as usize];
         let input_addr = input_vout
-        .script_pub_key
-        .address
-        .as_ref()
-        .map(|a| a.clone().assume_checked().to_string())
-        .unwrap_or_else(|| "unknown".into());
+            .script_pub_key
+            .address
+            .as_ref()
+            .map(|a| a.clone().assume_checked().to_string())
+            .unwrap_or_else(|| "unknown".into());
         total_input_amount += input_vout.value.to_btc();
         input_addresses.push(input_addr);
     }
@@ -141,13 +156,13 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
 
     for vout in tx.vout.iter() {
         let addr = vout
-        .script_pub_key
-        .address
-        .as_ref()
-        .map(|a| a.clone().assume_checked().to_string())
-        .unwrap_or_else(|| "unknown".into());   
+            .script_pub_key
+            .address
+            .as_ref()
+            .map(|a| a.clone().assume_checked().to_string())
+            .unwrap_or_else(|| "unknown".into());
 
-         if addr == trader_address.to_string() {
+        if addr == trader_address.to_string() {
             trader_output_address = addr;
             trader_output_amount = vout.value.to_btc();
         } else {
