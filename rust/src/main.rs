@@ -46,7 +46,7 @@ fn main() -> bitcoincore_rpc::Result<()> {
     // 2. Create wallets
     let existing_wallets = rpc.list_wallets()?;
 
-    for &wallet_name in &["Minern", "Trader"] {
+    for &wallet_name in &["Miner", "Trader"] {
         if !existing_wallets.iter().any(|w| w == wallet_name) {
             match rpc.load_wallet(wallet_name) {
                 Ok(_) => println!("Wallet {wallet_name} loaded successfully"),
