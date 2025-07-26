@@ -1,7 +1,7 @@
 #![allow(unused)]
 use bitcoin::hex::DisplayHex;
 use bitcoincore_rpc::bitcoin::{Address, Amount, Network};
-use bitcoincore_rpc::{Auth, Client, RpcApi, Error};
+use bitcoincore_rpc::{Auth, Client, Error, RpcApi};
 use serde::de::value;
 use serde::Deserialize;
 use serde_json::json;
@@ -37,7 +37,6 @@ fn send(rpc: &Client, addr: &str) -> bitcoincore_rpc::Result<String> {
 }
 
 fn main() -> bitcoincore_rpc::Result<()> {
-    //Result<(), Box<dyn std::error::Error>> {
     // 1. Connect to the node
     let rpc = Client::new(
         RPC_URL,
@@ -46,27 +45,23 @@ fn main() -> bitcoincore_rpc::Result<()> {
 
     // 2. Create wallets
     let existing_wallets = rpc.list_wallets()?;
- 
+
     for &wallet_name in &["Minern", "Trader"] {
         if !existing_wallets.iter().any(|w| w == wallet_name) {
-            println!("Wallet {} not loaded, attempting to load...", wallet_name);
             match rpc.load_wallet(wallet_name) {
                 Ok(_) => println!("Wallet {} loaded successfully", wallet_name),
                 Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(ref rpc_error))) => {
-                    println!("Failed to load wallet {}: {}", wallet_name, rpc_error.code);
                     // Vérifie si c’est une erreur -18 (does not exist), alors crée le wallet
-                        if rpc_error.code == -18 {
-                            println!("Wallet {} does not exist, creating...", wallet_name);
-                            rpc.create_wallet(wallet_name, None, None, None, None)?;
-                            println!("Wallet {} created successfully", wallet_name);
-                        } else {
-                            return Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(rpc_error.clone())));
-                        }
-                },
-                Err(e)=> return Err(e)
+                    if rpc_error.code == -18 {
+                        rpc.create_wallet(wallet_name, None, None, None, None)?;
+                    } else {
+                        return Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+                            rpc_error.clone(),
+                        )));
+                    }
+                }
+                Err(e) => return Err(e),
             }
-        } else {
-            println!("Wallet {} is already loaded.", wallet_name);
         }
     }
 
@@ -80,7 +75,6 @@ fn main() -> bitcoincore_rpc::Result<()> {
     )?;
 
     let miner_balance = miner_rpc.get_balance(None, None)?;
-    println!("Miner balance: {} BTC", miner_balance.to_btc());
 
     // 3. Miner generates an address with label "Mining Reward"
     let mining_address = miner_rpc
@@ -104,7 +98,6 @@ fn main() -> bitcoincore_rpc::Result<()> {
 
     // 5. Print balance
     let miner_balance = miner_rpc.get_balance(None, None)?;
-    println!("Miner balance: {} BTC", miner_balance.to_btc());
 
     // 6. Trader address
     let trader_address = trader_rpc
