@@ -15,7 +15,8 @@ describe('Evaluate submission', () => {
 
     it('should read data from out.txt and perform sanity checks', () => {
         // read txid from out.txt
-        const data = readFileSync('out.txt', 'utf8').trim().split('\n');
+        const path = require('path');
+        const data = readFileSync(path.join(__dirname, 'out.txt'), 'utf8').trim().split('\n');
         expect(data.length).toBe(10);
 
         txid = data[0].trim();
