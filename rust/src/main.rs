@@ -49,7 +49,7 @@ fn main() -> bitcoincore_rpc::Result<()> {
     for &wallet_name in &["Minern", "Trader"] {
         if !existing_wallets.iter().any(|w| w == wallet_name) {
             match rpc.load_wallet(wallet_name) {
-                Ok(_) => println!("Wallet {} loaded successfully", wallet_name),
+                Ok(_) => println!("Wallet {wallet_name} loaded successfully"),
                 Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(ref rpc_error))) => {
                     // Vérifie si c’est une erreur -18 (does not exist), alors crée le wallet
                     if rpc_error.code == -18 {
