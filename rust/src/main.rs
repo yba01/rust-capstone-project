@@ -89,7 +89,6 @@ fn main() -> bitcoincore_rpc::Result<()> {
         blocks_mined += 1;
         let bal = miner_rpc.get_balance(None, None)?;
         if bal.to_btc() > 0.0 {
-            println!("Balance after {} blocks: {}", blocks_mined, bal);
             break;
         }
     }
@@ -119,7 +118,6 @@ fn main() -> bitcoincore_rpc::Result<()> {
         None,
         None,
     )?;
-    println!("TXID: {}", txid);
 
     // 8. Get tx from mempool
     let mempool_entry = rpc.get_mempool_entry(&txid)?;
@@ -177,18 +175,16 @@ fn main() -> bitcoincore_rpc::Result<()> {
     // 11. Write to `out.txt`
     let mut file = File::create("../test/out.txt")?;
 
-    writeln!(file, "{}", txid)?;
+    writeln!(file, "{txid}")?;
     writeln!(file, "{}", input_addresses[0])?;
-    writeln!(file, "{}", total_input_amount)?;
-    writeln!(file, "{}", trader_output_address)?;
-    writeln!(file, "{}", trader_output_amount)?;
-    writeln!(file, "{}", change_address)?;
-    writeln!(file, "{}", change_amount)?;
+    writeln!(file, "{total_input_amount}")?;
+    writeln!(file, "{trader_output_address}")?;
+    writeln!(file, "{trader_output_amount}")?;
+    writeln!(file, "{change_address}")?;
+    writeln!(file, "{change_amount}")?;
     writeln!(file, "{}", -fee.to_btc())?;
-    writeln!(file, "{}", height)?;
-    writeln!(file, "{}", block_hash)?;
-
-    println!("Output written to out.txt");
+    writeln!(file, "{height}")?;
+    writeln!(file, "{block_hash}")?;
 
     Ok(())
 }
