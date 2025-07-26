@@ -1,7 +1,7 @@
 #![allow(unused)]
 use bitcoin::hex::DisplayHex;
 use bitcoincore_rpc::bitcoin::{Address, Amount, Network};
-use bitcoincore_rpc::{Auth, Client, RpcApi};
+use bitcoincore_rpc::{Auth, Client, RpcApi, Error};
 use serde::de::value;
 use serde::Deserialize;
 use serde_json::json;
@@ -46,20 +46,27 @@ fn main() -> bitcoincore_rpc::Result<()> {
 
     // 2. Create wallets
     let existing_wallets = rpc.list_wallets()?;
-    for name in ["Miner", "Trader"] {
-        if !existing_wallets.contains(&name.to_string()) {
-            match rpc.load_wallet(name) {
-                Ok(_) => println!("Wallet loaded successfully"),
-                Err(e) => {
-                    let rpc_err = e.to_string();
-                    if rpc_err.contains("Wallet file not found") {
-                        rpc.create_wallet(name, None, None, None, None)?;
-                        println!("Wallet created avec successfully")
-                    } else {
-                        return Err(e);
-                    }
-                }
+ 
+    for &wallet_name in &["Minern", "Trader"] {
+        if !existing_wallets.iter().any(|w| w == wallet_name) {
+            println!("Wallet {} not loaded, attempting to load...", wallet_name);
+            match rpc.load_wallet(wallet_name) {
+                Ok(_) => println!("Wallet {} loaded successfully", wallet_name),
+                Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(ref rpc_error))) => {
+                    println!("Failed to load wallet {}: {}", wallet_name, rpc_error.code);
+                    // Vérifie si c’est une erreur -18 (does not exist), alors crée le wallet
+                        if rpc_error.code == -18 {
+                            println!("Wallet {} does not exist, creating...", wallet_name);
+                            rpc.create_wallet(wallet_name, None, None, None, None)?;
+                            println!("Wallet {} created successfully", wallet_name);
+                        } else {
+                            return Err(Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(rpc_error.clone())));
+                        }
+                },
+                Err(e)=> return Err(e)
             }
+        } else {
+            println!("Wallet {} is already loaded.", wallet_name);
         }
     }
 
