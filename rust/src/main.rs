@@ -173,7 +173,7 @@ fn main() -> bitcoincore_rpc::Result<()> { //Result<(), Box<dyn std::error::Erro
     writeln!(file, "{}", height)?;
     writeln!(file, "{}", block_hash)?;
 
-    println!("✅ Output written to out.txt");
+    println!("Output written to out.txt");
 
     Ok(())
 }
